@@ -10,6 +10,8 @@ __pycache__/*
 .venv
 .venv/*
 
+data/
+data/*
 data/*.db
 
 poetry.lock
