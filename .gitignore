@@ -1,18 +1,24 @@
 .idea
-.idea/*
+.idea/
+#.idea/*
 
 .vscode
+.vscode/
 .vscode/*
 
 __pycache__
-__pycache__/*
+__pycache__/
+#__pycache__/*
 
 .venv
-.venv/*
+.venv/
+#.venv/*
 
+data
 data/
-data/*
-data/*.db
+#data/*
+#data/*.db
 
-poetry.lock
-pyproject.toml
+notebooks
+notebooks/
+#notebooks/*

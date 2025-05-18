@@ -14,8 +14,8 @@ simple-pizza
             models.py           <-- Записан
         db
             __init__.py
-            connection.py
-            queries.py
+            connection.py       <-- Записан
+            queries.py          <-- Записан
             schema.py           <-- Записан
         __init__.py
         main.py
@@ -25,7 +25,7 @@ simple-pizza
         __init__.py
         utils.py
     scripts
-        setup_db.py
+        setup_db.py             <-- Записан
     .gitignore
     poetry.lock
     poetry.toml
