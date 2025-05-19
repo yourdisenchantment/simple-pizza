@@ -1,12 +1,7 @@
 """Скрипт для создания и инициализации базы данных SQLite.
 """
 
-from app.db.connection import get_connection
-from app.db.queries import (
-    create_pizza, set_pizza_cost,
-    create_ingredient, set_ingredient_cost,
-    upsert_recipe_item
-)
+from app.db.queries import *
 from app.db.schema import create_tables, drop_tables
 
 
@@ -45,6 +40,13 @@ def seed_initial_data():
     upsert_recipe_item(pepperoni_id, cheese_id, 2)
     upsert_recipe_item(pepperoni_id, tomato_id, 1)
     upsert_recipe_item(pepperoni_id, salami_id, 2)
+
+    # ---------------- Наполнение ингредиентов ----------------
+    set_ingredient_amount(dough_id, 100)
+    set_ingredient_amount(cheese_id, 100)
+    set_ingredient_amount(salami_id, 50)
+    set_ingredient_amount(tomato_id, 80)
+    set_ingredient_amount(cream_id, 60)
 
     print("Пиццы успешно добавлены!")
 

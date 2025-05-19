@@ -3,23 +3,8 @@
 
 from typing import List, Optional
 
-from app.core.models import (
-    Pizza, PizzaCost,
-    Ingredient, IngredientCost, IngredientAmount,
-    Recipe
-)
+from app.core.models import *
 from app.db.connection import get_connection
-
-# from app.db.sql_queries import (
-#     SQL_SELECT_ALL_PIZZAS, SQL_SELECT_PIZZA_BY_ID, SQL_INSERT_PIZZA,
-#     SQL_UPDATE_PIZZA_VISIBILITY, SQL_DELETE_PIZZA,
-#     SQL_SELECT_PIZZA_COST, SQL_UPSERT_PIZZA_COST,
-#     SQL_SELECT_ALL_INGREDIENTS, SQL_SELECT_INGREDIENT_BY_ID,
-#     SQL_INSERT_INGREDIENT, SQL_DELETE_INGREDIENT,
-#     SQL_SELECT_INGREDIENT_COST, SQL_UPSERT_INGREDIENT_COST,
-#     SQL_SELECT_INGREDIENT_AMOUNT, SQL_UPSERT_INGREDIENT_AMOUNT,
-#     SQL_SELECT_RECIPE_BY_PIZZA, SQL_UPSERT_RECIPE_ITEM, SQL_DELETE_RECIPE_BY_PIZZA
-# )
 
 # ---------------- PIZZA ----------------
 
@@ -55,10 +40,14 @@ def get_all_pizzas() -> List[Pizza]:
     Returns:
         List[Pizza]: список объектов Pizza
     """
-    with get_connection() as conn:
-        rows = conn.execute(SQL_SELECT_ALL_PIZZAS).fetchall()
-        return [Pizza(**row) for row in rows]
+    try:
+        with get_connection() as conn:
+            rows = conn.execute(SQL_SELECT_ALL_PIZZAS).fetchall()
+            return [Pizza(**row) for row in rows]
 
+    except Exception as error:
+        print(f"Ошибка при получении всех пицц: {error}")
+        return []
 
 def get_pizza_by_id(pizza_id: int) -> Optional[Pizza]:
     """Найти пиццу по её ID.
@@ -69,9 +58,14 @@ def get_pizza_by_id(pizza_id: int) -> Optional[Pizza]:
     Returns:
         Pizza | None: объект Pizza или None, если не найдено
     """
-    with get_connection() as conn:
-        row = conn.execute(SQL_SELECT_PIZZA_BY_ID, (pizza_id,)).fetchone()
-        return Pizza(**row) if row else None
+    try:
+        with get_connection() as conn:
+            row = conn.execute(SQL_SELECT_PIZZA_BY_ID, (pizza_id,)).fetchone()
+            return Pizza(**row) if row else None
+
+    except Exception as error:
+        print(f"Ошибка при получении пиццы по ID: {error}")
+        return None
 
 
 def create_pizza(name: str, visible: bool = True) -> int:
@@ -84,10 +78,15 @@ def create_pizza(name: str, visible: bool = True) -> int:
     Returns:
         int: новосозданный id_pizza
     """
-    with get_connection() as conn:
-        cur = conn.execute(SQL_INSERT_PIZZA, (name, int(visible)))
-        conn.commit()
-        return cur.lastrowid
+    try:
+        with get_connection() as conn:
+            cur = conn.execute(SQL_INSERT_PIZZA, (name, int(visible)))
+            conn.commit()
+            return cur.lastrowid
+
+    except Exception as error:
+        print(f"Ошибка при создании пиццы: {error}")
+        return -1
 
 
 def update_pizza_visibility(pizza_id: int, visible: bool) -> None:
@@ -97,9 +96,13 @@ def update_pizza_visibility(pizza_id: int, visible: bool) -> None:
         pizza_id (int): идентификатор пиццы
         visible (bool): новый флаг видимости
     """
-    with get_connection() as conn:
-        conn.execute(SQL_UPDATE_PIZZA_VISIBILITY, (int(visible), pizza_id))
-        conn.commit()
+    try:
+        with get_connection() as conn:
+            conn.execute(SQL_UPDATE_PIZZA_VISIBILITY, (int(visible), pizza_id))
+            conn.commit()
+
+    except Exception as error:
+        print(f"Ошибка при обновлении видимости пиццы: {error}")
 
 
 def delete_pizza(pizza_id: int) -> None:
@@ -108,9 +111,12 @@ def delete_pizza(pizza_id: int) -> None:
     Args:
         pizza_id (int): идентификатор удаляемой пиццы
     """
-    with get_connection() as conn:
-        conn.execute(SQL_DELETE_PIZZA, (pizza_id,))
-        conn.commit()
+    try:
+        with get_connection() as conn:
+            conn.execute(SQL_DELETE_PIZZA, (pizza_id,))
+            conn.commit()
+    except Exception as error:
+        print(f"Ошибка при удалении пиццы: {error}")
 
 
 # ---------------- PIZZA COST ----------------
@@ -135,9 +141,18 @@ def get_pizza_cost(pizza_id: int) -> Optional[PizzaCost]:
     Returns:
         PizzaCost | None: объект PizzaCost или None
     """
-    with get_connection() as conn:
-        row = conn.execute(SQL_SELECT_PIZZA_COST, (pizza_id,)).fetchone()
-        return PizzaCost(**row) if row else None
+    try:
+        base_cost = get_pizza_base_cost(pizza_id)
+        with get_connection() as conn:
+            row = conn.execute(SQL_SELECT_PIZZA_COST, (pizza_id,)).fetchone()
+            if row:
+                cost_factor = row["cost_factor"]
+                return base_cost * cost_factor
+            return None
+
+    except Exception as error:
+        print(f"Ошибка при получении полной стоимости пиццы: {error}")
+        return None
 
 
 def set_pizza_cost(pizza_id: int, cost_factor: float) -> None:
@@ -357,3 +372,31 @@ def delete_recipe_for_pizza(pizza_id: int) -> None:
     with get_connection() as conn:
         conn.execute(SQL_DELETE_RECIPE_BY_PIZZA, (pizza_id,))
         conn.commit()
+
+
+# ---------------- PIZZA COST ----------------
+
+SQL_GET_PIZZA_BASE_COST = """
+                          SELECT ic.cost, r.amount
+                          FROM recipe r
+                                   JOIN ingredient_cost ic ON r.id_ingredient = ic.id_ingredient
+                          WHERE r.id_pizza = ? \
+                          """
+
+
+def get_pizza_base_cost(pizza_id: int) -> float:
+    """Возвращает себестоимость пиццы (без учёта коэффициента стоимости),
+    вычисленную как сумма: стоимость_ингредиента * количество_ингредиента.
+
+    Args:
+        pizza_id (int): идентификатор пиццы
+
+    Returns:
+        float: стоимость пиццы
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute(SQL_GET_PIZZA_BASE_COST, (pizza_id,))
+    result = cursor.fetchall()
+    conn.close()
+    return sum(cost * amount for cost, amount in result)

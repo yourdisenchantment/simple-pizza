@@ -17,6 +17,9 @@ simple-pizza
             connection.py       <-- Записан
             queries.py          <-- Записан
             schema.py           <-- Записан
+        ui
+            __init__.py
+            menu.py
         __init__.py
         main.py
     data
