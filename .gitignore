@@ -1,24 +1,89 @@
-.idea
+# IDE
 .idea/
-#.idea/*
-
-.vscode
 .vscode/
-.vscode/*
+*.swp
+*.swo
+*.swn
+*.bak
 
-__pycache__
+# Python
 __pycache__/
-#__pycache__/*
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
-.venv
+# Virtual Environment
 .venv/
-#.venv/*
+venv/
+ENV/
+env/
+.env
+.python-version
+pyvenv.cfg
 
-data
+# Project specific
 data/
-#data/*
-#data/*.db
-
-notebooks
 notebooks/
-#notebooks/*
+logs/
+*.db
+*.sqlite
+*.sqlite3
+
+# Poetry
+poetry.lock
+dist/
+*.egg-info/
+
+# Coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Pytest
+.pytest_cache/
+pytest.ini
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.log
+*.pot
+*.pyc
+local_settings.py
+db.sqlite3
+media/
+
+# Backup files
+*~
+*.bak
+*.swp
+*.swo

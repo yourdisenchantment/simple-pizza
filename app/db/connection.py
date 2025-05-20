@@ -1,21 +1,25 @@
-"""Модуль для управления соединением с базой данных.
-"""
+# app/db/connection.py
+
+"""Модуль для управления соединением с базой данных."""
 
 import contextlib
 import sqlite3
+from typing import Generator
 
 from app.core.config import DB_PATH
 
 
 @contextlib.contextmanager
-def get_connection():
+def get_connection() -> Generator[sqlite3.Connection, None, None]:
     """Контекстный менеджер для соединения с базой данных.
 
+    Создает соединение с БД, настраивает row_factory и автоматически закрывает соединение.
+
     Yields:
-        sqlite3.Connection: Соединение с БД.
+        Соединение с БД
 
     Raises:
-        sqlite3.Error: Если подключение не удалось.
+        sqlite3.Error: При ошибке подключения к БД
     """
     conn = None
     try:
@@ -24,9 +28,12 @@ def get_connection():
         yield conn
 
     except sqlite3.Error as error:
-        print(f"Ошибка подключения к базе данных: {error}")
-        raise
+        raise sqlite3.Error(f"Ошибка подключения к базе данных: {error}")
 
     finally:
         if conn:
-            conn.close()
+            try:
+                conn.close()
+            except sqlite3.Error:
+                # Игнорируем ошибки при закрытии соединения
+                pass
